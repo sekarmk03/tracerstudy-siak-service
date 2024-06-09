@@ -6,10 +6,9 @@ import (
 	"tracerstudy-siak-service/pb"
 
 	"google.golang.org/grpc"
-	"gorm.io/gorm"
 )
 
-func InitGrpc(server *grpc.Server, cfg config.Config, db *gorm.DB, grpcConn *grpc.ClientConn) {
+func InitGrpc(server *grpc.Server, cfg config.Config, grpcConn *grpc.ClientConn) {
 	mhsbiodata := builder.BuildMhsBiodataApiHandler(cfg, grpcConn)
 	pb.RegisterMhsBiodataApiServiceServer(server, mhsbiodata)
 }
