@@ -60,8 +60,9 @@ func (mbh *MhsBiodataApiHandler) FetchMhsBiodataByNim(ctx context.Context, req *
 	}, nil
 }
 
-func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.MhsBiodataApiRequest) (*pb.CheckMhsAlumniResponse, error) {
+func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.CheckMhsAlumniRequest) (*pb.CheckMhsAlumniResponse, error) {
 	nim := req.GetNim()
+	tglSidang := req.GetTglSidang()
 
 	var apiResponse *entity.MhsBiodataApi
 	apiResponse, err := mbh.mhsbiodataSvc.FetchMhsBiodataByNimFromSiakApi(nim)
@@ -71,9 +72,9 @@ func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.Mhs
 			// return nil, status.Errorf(codes.NotFound, "resource not found")
 			return &pb.CheckMhsAlumniResponse{
 				Code:     uint32(http.StatusNotFound),
-				Message:  "mhsbiodata not found",
+				Message:  "mahasiswa not found",
 				IsAlumni: false,
-			}, status.Errorf(codes.NotFound, "mhsbiodata not found")
+			}, status.Errorf(codes.NotFound, "mahasiswa not found")
 		}
 
 		parseError := errors.ParseError(err)
@@ -86,16 +87,27 @@ func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.Mhs
 		}, status.Errorf(parseError.Code, parseError.Message)
 	}
 
-	var isAlumni bool
-	if apiResponse.KODESTATUS == "2" {
-		isAlumni = true
-	} else {
-		isAlumni = false
+	if apiResponse.TGLSIDANG != tglSidang {
+		log.Println("WARNING: [MhsBiodataHandler - CheckMhsAlumni] Tanggal sidang not match")
+		return &pb.CheckMhsAlumniResponse{
+			Code:     uint32(http.StatusOK),
+			Message:  "tanggal sidang not match",
+			IsAlumni: false,
+		}, nil
 	}
 
-	return &pb.CheckMhsAlumniResponse{
-		Code:     uint32(http.StatusOK),
-		Message:  "get mhs status alumni success",
-		IsAlumni: isAlumni,
-	}, nil
+	if apiResponse.KODESTATUS == "2" {
+		return &pb.CheckMhsAlumniResponse{
+			Code:     uint32(http.StatusOK),
+			Message:  "get mhs status alumni success",
+			IsAlumni: true,
+		}, nil
+	} else {
+		log.Println("WARNING: [MhsBiodataHandler - CheckMhsAlumni] Mahasiswa is not alumni yet")
+		return &pb.CheckMhsAlumniResponse{
+			Code:     uint32(http.StatusOK),
+			Message:  "mahasiswa is not alumni yet",
+			IsAlumni: false,
+		}, nil
+	}
 }
