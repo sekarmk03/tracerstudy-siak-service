@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package tracer_study_grpc;
+option go_package = "./;pb";
+
+message MhsBiodataApi {
+    string NIM = 1;
+    string NAMA = 2;
+    string IPK = 3;
+    string HP = 4;
+    string EMAIL = 5;
+    string KODEPSTD = 6;
+    string JENJANG = 7;
+    string PRODI = 8;
+    string NAMAPST = 9;
+    string KODEPST = 10;
+    string KODEFAK = 11;
+    string NAMAFAK = 12;
+    string JLRMASUK = 13;
+    string THNMASUK = 14;
+    string LAMASTD = 15;
+    string TGLSIDANG = 16;
+    string KODEJK = 17;
+    string KODESTATUS = 18;
+}
+
+message MhsBiodataApiRequest {
+    string nim = 1;
+}
+
+message MhsBiodataApiResponse {
+    uint32 code = 1;
+    string message = 2;
+    MhsBiodataApi data = 3;
+}
+
+message CheckMhsAlumniResponse {
+    uint32 code = 1;
+    string message = 2;
+    bool isAlumni = 3;
+}
+
+service MhsBiodataApiService {
+    rpc FetchMhsBiodataByNim(MhsBiodataApiRequest) returns (MhsBiodataApiResponse) {};
+    rpc CheckMhsAlumni(MhsBiodataApiRequest) returns (CheckMhsAlumniResponse) {};
+}
