@@ -87,6 +87,15 @@ func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.Che
 		}, status.Errorf(parseError.Code, parseError.Message)
 	}
 
+	if apiResponse.KODESTATUS != "2" {
+		log.Println("WARNING: [MhsBiodataHandler - CheckMhsAlumni] Mahasiswa is not recognize as alumni")
+		return &pb.CheckMhsAlumniResponse{
+			Code:     uint32(http.StatusOK),
+			Message:  "mahasiswa is not recognize as alumni",
+			IsAlumni: false,
+		}, nil
+	}
+
 	if apiResponse.TGLSIDANG != tglSidang {
 		log.Println("WARNING: [MhsBiodataHandler - CheckMhsAlumni] Tanggal sidang not match")
 		return &pb.CheckMhsAlumniResponse{
@@ -96,18 +105,9 @@ func (mbh *MhsBiodataApiHandler) CheckMhsAlumni(ctx context.Context, req *pb.Che
 		}, nil
 	}
 
-	if apiResponse.KODESTATUS == "2" {
-		return &pb.CheckMhsAlumniResponse{
-			Code:     uint32(http.StatusOK),
-			Message:  "get mhs status alumni success",
-			IsAlumni: true,
-		}, nil
-	} else {
-		log.Println("WARNING: [MhsBiodataHandler - CheckMhsAlumni] Mahasiswa is not alumni yet")
-		return &pb.CheckMhsAlumniResponse{
-			Code:     uint32(http.StatusOK),
-			Message:  "mahasiswa is not alumni yet",
-			IsAlumni: false,
-		}, nil
-	}
+	return &pb.CheckMhsAlumniResponse{
+		Code:     uint32(http.StatusOK),
+		Message:  "get mhs status alumni success",
+		IsAlumni: true,
+	}, nil
 }
