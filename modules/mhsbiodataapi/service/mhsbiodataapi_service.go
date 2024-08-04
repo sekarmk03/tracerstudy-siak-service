@@ -1,13 +1,10 @@
 package service
 
 import (
-	"bytes"
 	"encoding/json"
-
-	"io"
 	"log"
-	"net/http"
-	"time"
+	"os"
+
 	"tracerstudy-siak-service/common/config"
 	"tracerstudy-siak-service/modules/mhsbiodataapi/entity"
 
@@ -17,10 +14,10 @@ import (
 	// "google.golang.org/grpc/status"
 )
 
-const (
+/*const (
 	apiMaxRetries = 3
 	sleepTime     = 500 * time.Millisecond
-)
+)*/
 
 type MhsBiodataApiService struct {
 	cfg config.Config
@@ -37,7 +34,32 @@ func NewMhsBiodataApiService(cfg config.Config) *MhsBiodataApiService {
 }
 
 func (svc *MhsBiodataApiService) FetchMhsBiodataByNimFromSiakApi(nim string) (*entity.MhsBiodataApi, error) {
-	payload := map[string]string{"nim": nim}
+	data, err := os.ReadFile("/app/mock_response.json")
+	if err != nil {
+		log.Println("ERROR: [MhsBiodataService - FetchMhsBiodataByNimFromSiakApi] Failed to read mock response file:", err)
+	}
+
+	var mhssbiodata []entity.MhsBiodataApi
+	if err := json.Unmarshal(data, &mhssbiodata); err != nil {
+		log.Println("ERROR: [MhsBiodataService - FetchMhsBiodataByNimFromSiakApi] Error while unmarshalling mock response body:", err)
+		return nil, status.Errorf(codes.Internal, "internal server error: %v", err)
+	}
+
+	var foundMhs *entity.MhsBiodataApi
+	for _, mhsbiodata := range mhssbiodata {
+		if mhsbiodata.NIM == nim {
+			foundMhs = &mhsbiodata
+			break
+		}
+	}
+
+	if foundMhs == nil {
+		log.Println("WARNING: [MhsBiodataService - FetchMhsBiodataByNimFromSiakApi] Resource not found: nim", nim)
+		return nil, status.Errorf(codes.NotFound, "mhs resource not found")
+	}
+
+	return foundMhs, nil
+	/*payload := map[string]string{"nim": nim}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		log.Println("ERROR: [MhsBiodataService - FetchMhsBiodataByNimFromSiakApi] Error while marshalling payload:", err)
@@ -108,4 +130,5 @@ func (svc *MhsBiodataApiService) FetchMhsBiodataByNimFromSiakApi(nim string) (*e
 
 	log.Println("ERROR: [MhsBiodataService - FetchMhsBiodataByNimFromSiakApi] Maximum retries reached without success")
 	return nil, status.Errorf(codes.Internal, "internal server error: maximum retries reached without success")
+	*/
 }
